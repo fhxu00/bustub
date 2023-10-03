@@ -36,6 +36,8 @@ TableHeap::TableHeap(BufferPoolManager *bpm) : bpm_(bpm) {
   first_page->Init();
 }
 
+TableHeap::TableHeap(bool create_table_heap) : bpm_(nullptr) {}
+
 auto TableHeap::InsertTuple(const TupleMeta &meta, const Tuple &tuple, LockManager *lock_mgr, Transaction *txn,
                             table_oid_t oid) -> std::optional<RID> {
   std::unique_lock<std::mutex> guard(latch_);
@@ -53,15 +55,16 @@ auto TableHeap::InsertTuple(const TupleMeta &meta, const Tuple &tuple, LockManag
     auto npg = bpm_->NewPage(&next_page_id);
     BUSTUB_ENSURE(next_page_id != INVALID_PAGE_ID, "cannot allocate page");
 
-    // Don't do lock crabbing here: TSAN reports, also as last_page_id_ is only updated
-    // later, this page won't be accessed.
     page->SetNextPageId(next_page_id);
+
+    auto next_page = reinterpret_cast<TablePage *>(npg->GetData());
+    next_page->Init();
+
     page_guard.Drop();
 
+    // acquire latch here as TSAN complains. Given we only have one insertion thread, this is fine.
     npg->WLatch();
     auto next_page_guard = WritePageGuard{bpm_, npg};
-    auto next_page = next_page_guard.AsMut<TablePage>();
-    next_page->Init();
 
     last_page_id_ = next_page_id;
     page_guard = std::move(next_page_guard);
@@ -75,7 +78,8 @@ auto TableHeap::InsertTuple(const TupleMeta &meta, const Tuple &tuple, LockManag
   guard.unlock();
 
   if (lock_mgr != nullptr) {
-    lock_mgr->LockRow(txn, LockManager::LockMode::EXCLUSIVE, oid, RID{last_page_id, slot_id});
+    BUSTUB_ENSURE(lock_mgr->LockRow(txn, LockManager::LockMode::EXCLUSIVE, oid, RID{last_page_id, slot_id}),
+                  "failed to lock when inserting new tuple");
   }
 
   page_guard.Drop();

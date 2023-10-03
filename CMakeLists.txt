@@ -138,6 +138,7 @@ set(BUSTUB_THIRD_PARTY_INCLUDE_DIR
         ${PROJECT_SOURCE_DIR}/third_party/libpg_query/include
         ${PROJECT_SOURCE_DIR}/third_party/argparse/include
         ${PROJECT_SOURCE_DIR}/third_party/cpp_random_distributions
+        ${PROJECT_SOURCE_DIR}/third_party/backward-cpp/include
 )
 
 include_directories(${BUSTUB_SRC_INCLUDE_DIR} ${BUSTUB_TEST_INCLUDE_DIR} ${BUSTUB_THIRD_PARTY_INCLUDE_DIR})
@@ -151,9 +152,13 @@ endfunction()
 # Other CMake modules
 # MUST BE ADDED AFTER CONFIGURING COMPILER PARAMETERS
 # #####################################################################################################################
+set(CMAKE_MODULE_PATH "${BUSTUB_BUILD_SUPPORT_DIR}/cmake;${CMAKE_MODULE_PATH}")
+find_package(LibElf)
+find_package(LibDwarf)
+
+add_subdirectory(third_party)
 add_subdirectory(src)
 add_subdirectory(test)
-add_subdirectory(third_party)
 add_subdirectory(tools)
 
 # #####################################################################################################################
@@ -266,12 +271,12 @@ add_custom_target(submit-p0
 )
 
 set(P1_FILES
-        "src/include/storage/page/page_guard.h"
-        "src/storage/page/page_guard.cpp"
         "src/include/buffer/lru_k_replacer.h"
         "src/buffer/lru_k_replacer.cpp"
         "src/include/buffer/buffer_pool_manager.h"
         "src/buffer/buffer_pool_manager.cpp"
+        "src/include/storage/disk/disk_scheduler.h"
+        "src/storage/disk/disk_scheduler.cpp"
 )
 add_custom_target(check-clang-tidy-p1
         ${BUSTUB_BUILD_SUPPORT_DIR}/run_clang_tidy.py # run LLVM's clang-tidy script
@@ -286,16 +291,16 @@ add_custom_target(submit-p1
 )
 
 set(P2_FILES
-        "src/include/storage/page/b_plus_tree_page.h"
-        "src/storage/page/b_plus_tree_page.cpp"
-        "src/include/storage/page/b_plus_tree_internal_page.h"
-        "src/storage/page/b_plus_tree_internal_page.cpp"
-        "src/include/storage/page/b_plus_tree_leaf_page.h"
-        "src/storage/page/b_plus_tree_leaf_page.cpp"
-        "src/include/storage/index/index_iterator.h"
-        "src/storage/index/index_iterator.cpp"
-        "src/include/storage/index/b_plus_tree.h"
-        "src/storage/index/b_plus_tree.cpp"
+        "src/include/storage/page/page_guard.h"
+        "src/storage/page/page_guard.cpp"
+        "src/include/storage/page/extendible_htable_bucket_page.h"
+        "src/storage/page/extendible_htable_bucket_page.cpp"
+        "src/include/storage/page/extendible_htable_directory_page.h"
+        "src/storage/page/extendible_htable_directory_page.cpp"
+        "src/include/storage/page/extendible_htable_header_page.h"
+        "src/storage/page/extendible_htable_header_page.cpp"
+        "src/include/container/disk/hash/disk_extendible_hash_table.h"
+        "src/container/disk/hash/disk_extendible_hash_table.cpp"
         ${P1_FILES}
 )
 add_custom_target(check-clang-tidy-p2
