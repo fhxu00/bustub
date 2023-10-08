@@ -207,6 +207,12 @@ class BufferPoolManager {
     // This is a no-nop right now without a more complex data structure to track deallocated pages
   }
 
+  void ResetPage(Page *page, page_id_t page_id);
+
+  bool WritePageToDisk(Page &page);
+
+  bool ReadPageFromDisk(Page &page);
+
   // TODO(student): You may add additional private members and helper functions
 };
 }  // namespace bustub

@@ -40,6 +40,10 @@ struct DiskRequest {
 
   /** Callback used to signal to the request issuer when the request has been completed. */
   std::promise<bool> callback_;
+
+  //DiskRequest(const DiskRequest &other) : is_write_(other.is_write_), data_(other.data_), page_id_(other.page_id_), callback_(std::move(other.callback_)) {}
+
+  //DiskRequest(DiskRequest &&other) noexcept : is_write_(other.is_write_), data_(other.data_), page_id_(other.page_id_), callback_(std::move(other.callback_)) {}
 };
 
 /**
